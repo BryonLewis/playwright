@@ -19,7 +19,7 @@ import * as React from 'react';
 import { Toolbar } from '../components/toolbar';
 import { ToolbarButton } from '../components/toolbarButton';
 import { Source as SourceView } from '../components/source';
-import type { CallLog, Mode, Source } from '../../server/supplements/recorder/recorderTypes';
+import type { CallLog, Mode, Source, MouseMode } from '../../server/supplements/recorder/recorderTypes';
 import { SplitView } from '../components/splitView';
 import { CallLogView } from './callLog';
 
@@ -36,6 +36,7 @@ export interface RecorderProps {
   paused: boolean,
   log: Map<number, CallLog>,
   mode: Mode,
+  mouseMode: MouseMode,
   initialSelector?: string,
 }
 
@@ -44,6 +45,7 @@ export const Recorder: React.FC<RecorderProps> = ({
   paused,
   log,
   mode,
+  mouseMode,
   initialSelector,
 }) => {
   const [selector, setSelector] = React.useState(initialSelector || '');
@@ -80,7 +82,7 @@ export const Recorder: React.FC<RecorderProps> = ({
 
   return <div className='recorder'>
     <Toolbar>
-      <ToolbarButton icon='record' title='Record' toggled={mode == 'recording'} onClick={() => {
+      <ToolbarButton icon='record' title='Record' toggled={mode === 'recording'} onClick={() => {
         window.dispatch({ event: 'setMode', params: { mode: mode === 'recording' ? 'none' : 'recording' }});
       }}>Record</ToolbarButton>
       <ToolbarButton icon='files' title='Copy' disabled={!source || !source.text} onClick={() => {
@@ -95,9 +97,12 @@ export const Recorder: React.FC<RecorderProps> = ({
       <ToolbarButton icon='debug-step-over' title='Step over' disabled={!paused} onClick={() => {
         window.dispatch({ event: 'step' });
       }}></ToolbarButton>
+      <ToolbarButton icon='circuit-board' title='Mouse Record' toggled={mouseMode === 'mouserecord'} disabled={mode !== 'recording'} onClick={() => {
+        window.dispatch({ event: 'setMouseMode', params: {mouseMode: mouseMode === 'default' ? 'mouserecord' : 'default'} });
+      }}>Mouse</ToolbarButton>
       <select className='recorder-chooser' hidden={!sources.length} value={file} onChange={event => {
-          setFile(event.target.selectedOptions[0].value);
-        }}>{
+        setFile(event.target.selectedOptions[0].value);
+      }}>{
           sources.map(s => {
             const title = s.file.replace(/.*[/\\]([^/\\]+)/, '$1');
             return <option key={s.file} value={s.file}>{title}</option>;

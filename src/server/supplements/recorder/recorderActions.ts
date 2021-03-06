@@ -19,6 +19,7 @@ export type ActionName =
   'click' |
   'closePage' |
   'fill' |
+  'mouse' |
   'navigate' |
   'openPage' |
   'press' |
@@ -37,6 +38,14 @@ export type ClickAction = ActionBase & {
   button: 'left' | 'middle' | 'right',
   modifiers: number,
   clickCount: number,
+};
+
+export type MouseAction = ActionBase & {
+  name: 'mouse',
+  button: 'left' | 'middle' | 'right',
+  buttonState: 'up' | 'down',
+  position: { x: number, y: number},
+  modifiers: number,
 };
 
 export type CheckAction = ActionBase & {
@@ -88,7 +97,7 @@ export type SetInputFilesAction = ActionBase & {
   files: string[],
 };
 
-export type Action = ClickAction | CheckAction | ClosesPageAction | OpenPageAction | UncheckAction | FillAction | NavigateAction | PressAction | SelectAction | SetInputFilesAction;
+export type Action = ClickAction | MouseAction | CheckAction | ClosesPageAction | OpenPageAction | UncheckAction | FillAction | NavigateAction | PressAction | SelectAction | SetInputFilesAction;
 
 // Signals.
 
@@ -135,6 +144,9 @@ export function actionTitle(action: Action): string {
       if (action.clickCount === 3)
         return `Triple click ${action.selector}`;
       return `${action.clickCount}× click`;
+    }
+    case 'mouse': {
+      return `Mouse-${action.buttonState} at Position: ${action.position.x},${action.position.y}`;
     }
     case 'fill':
       return `Fill ${action.selector}`;

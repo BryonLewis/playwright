@@ -739,6 +739,7 @@ export type BrowserContextPauseResult = void;
 export type BrowserContextRecorderSupplementEnableParams = {
   language?: string,
   startRecording?: boolean,
+  mouseMode?: string,
   pauseOnNextStatement?: boolean,
   launchOptions?: any,
   contextOptions?: any,
@@ -749,6 +750,7 @@ export type BrowserContextRecorderSupplementEnableParams = {
 export type BrowserContextRecorderSupplementEnableOptions = {
   language?: string,
   startRecording?: boolean,
+  mouseMode?: string,
   pauseOnNextStatement?: boolean,
   launchOptions?: any,
   contextOptions?: any,

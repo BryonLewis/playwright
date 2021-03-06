@@ -364,6 +364,7 @@ export function createScheme(tChannel: (name: string) => Validator): Scheme {
   scheme.BrowserContextRecorderSupplementEnableParams = tObject({
     language: tOptional(tString),
     startRecording: tOptional(tBoolean),
+    mouseMode: tOptional(tString),
     pauseOnNextStatement: tOptional(tBoolean),
     launchOptions: tOptional(tAny),
     contextOptions: tOptional(tAny),

@@ -649,6 +649,7 @@ BrowserContext:
       parameters:
         language: string?
         startRecording: boolean?
+        mouseMode: string?
         pauseOnNextStatement: boolean?
         launchOptions: json?
         contextOptions: json?

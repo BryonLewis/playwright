@@ -34,6 +34,22 @@ export function toClickOptions(action: actions.ClickAction): { method: 'click' |
   return { method, options };
 }
 
+export function toMouseOptions(action: actions.MouseAction): {method: 'up' | 'down' | 'move', position?: {x: number, y: number}, options: MouseClickOptions }[] {
+  const method = action.buttonState;
+  const modifiers = toModifiers(action.modifiers);
+  const options: MouseClickOptions = {};
+  options.button = action.button;
+  if (modifiers.length)
+    options.modifiers = modifiers;
+  return [ {
+    method: 'move',
+    position: action.position,
+    options,
+  },
+  { method, options }
+  ];
+}
+
 export function toModifiers(modifiers: number): ('Alt' | 'Control' | 'Meta' | 'Shift')[] {
   const result: ('Alt' | 'Control' | 'Meta' | 'Shift')[] = [];
   if (modifiers & 1)

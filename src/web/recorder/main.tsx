@@ -16,12 +16,13 @@
 
 import './recorder.css';
 import * as React from 'react';
-import type { CallLog, Mode, Source } from '../../server/supplements/recorder/recorderTypes';
+import type { CallLog, Mode, MouseMode, Source } from '../../server/supplements/recorder/recorderTypes';
 import { Recorder } from './recorder';
 
 declare global {
   interface Window {
     playwrightSetMode: (mode: Mode) => void;
+    playwrightSetMouseMode: (mouseMode: MouseMode) => void;
     playwrightSetPaused: (paused: boolean) => void;
     playwrightSetSources: (sources: Source[]) => void;
     playwrightUpdateLogs: (callLogs: CallLog[]) => void;
@@ -35,8 +36,10 @@ export const Main: React.FC = ({
   const [paused, setPaused] = React.useState(false);
   const [log, setLog] = React.useState(new Map<number, CallLog>());
   const [mode, setMode] = React.useState<Mode>('none');
+  const [mouseMode, setMouseMode] = React.useState<MouseMode>('default');
 
   window.playwrightSetMode = setMode;
+  window.playwrightSetMouseMode = setMouseMode;
   window.playwrightSetSources = setSources;
   window.playwrightSetPaused = setPaused;
   window.playwrightUpdateLogs = callLogs => {
@@ -49,5 +52,5 @@ export const Main: React.FC = ({
   };
 
   window.playwrightSourcesEchoForTest = sources;
-  return <Recorder sources={sources} paused={paused} log={log} mode={mode}/>;
+  return <Recorder sources={sources} paused={paused} log={log} mode={mode} mouseMode={mouseMode}/>;
 };

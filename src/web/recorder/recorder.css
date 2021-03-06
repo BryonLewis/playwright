@@ -46,6 +46,14 @@
   color: #fd1e1e;
 }
 
+.recorder .toolbar-button.codicon-circuit-board {
+  color: #fd1e1e;
+}
+
+.recorder .toolbar-button:not([disabled]).toggled .codicon-circuit-board {
+  color: #01bb01;
+}
+
 .recorder .toolbar-button:not([disabled]) .codicon-debug-continue,
 .recorder .toolbar-button:not([disabled]) .codicon-debug-step-over {
   color: #01bb01;
