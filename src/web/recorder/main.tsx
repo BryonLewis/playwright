@@ -36,7 +36,7 @@ export const Main: React.FC = ({
   const [paused, setPaused] = React.useState(false);
   const [log, setLog] = React.useState(new Map<number, CallLog>());
   const [mode, setMode] = React.useState<Mode>('none');
-  const [mouseMode, setMouseMode] = React.useState<MouseMode>('default');
+  const [mouseMode, setMouseMode] = React.useState<MouseMode>('selector');
 
   window.playwrightSetMode = setMode;
   window.playwrightSetMouseMode = setMouseMode;

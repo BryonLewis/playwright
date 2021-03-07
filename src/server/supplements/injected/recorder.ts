@@ -49,7 +49,7 @@ export class Recorder {
   private _expectProgrammaticKeyUp = false;
   private _pollRecorderModeTimer: NodeJS.Timeout | undefined;
   private _mode: 'none' | 'inspecting' | 'recording' = 'none';
-  private _mouseMode: 'default' | 'mouserecord' = 'default';
+  private _mouseMode: 'selector' | 'raw' = 'selector';
   private _actionPointElement: HTMLElement;
   private _actionPoint: Point | undefined;
   private _actionSelector: string | undefined;
@@ -273,7 +273,7 @@ export class Recorder {
   }
 
   private _onClick(event: MouseEvent) {
-    if (this._mouseMode === 'mouserecord') {
+    if (this._mouseMode === 'raw') {
       consumeEvent(event);
       return;
     }
@@ -316,7 +316,7 @@ export class Recorder {
       return true;
     }
     const nodeName = target.nodeName;
-    if (this._mouseMode === 'default') {
+    if (this._mouseMode === 'selector') {
       if (nodeName === 'SELECT')
         return true;
       if (nodeName === 'INPUT' && ['date'].includes((target as HTMLInputElement).type))
@@ -328,12 +328,12 @@ export class Recorder {
   private _onMouseDown(event: MouseEvent) {
     if (this._shouldIgnoreMouseEvent(event))
       return;
-    if (!this._performingAction && this._mouseMode === 'default'){
+    if (!this._performingAction && this._mouseMode === 'selector'){
       consumeEvent(event);
       this._activeModel = this._hoveredModel;
     }
 
-    if (this._mouseMode === 'mouserecord') {
+    if (this._mouseMode === 'raw') {
       if (this._actionInProgress(event))
         return;
 
@@ -355,10 +355,10 @@ export class Recorder {
   private _onMouseUp(event: MouseEvent) {
     if (this._shouldIgnoreMouseEvent(event))
       return;
-    if (!this._performingAction && this._mouseMode === 'default')
+    if (!this._performingAction && this._mouseMode === 'selector')
       consumeEvent(event);
 
-    if (this._mouseMode === 'mouserecord') {
+    if (this._mouseMode === 'raw') {
       if (this._actionInProgress(event))
         return;
 
@@ -421,6 +421,9 @@ export class Recorder {
   }
 
   private _updateHighlight() {
+    if (this._mouseMode === 'raw')
+      return;
+
     const elements = this._hoveredModel ? this._hoveredModel.elements : [];
 
     // Code below should trigger one layout and leave with the

@@ -18,7 +18,7 @@ import { Point } from '../../../common/types';
 
 export type Mode = 'inspecting' | 'recording' | 'none';
 
-export type MouseMode = 'default' | 'mouserecord';
+export type MouseMode = 'selector' | 'raw';
 
 export type EventData = {
   event: 'clear' | 'resume' | 'step' | 'pause' | 'setMode' | 'setMouseMode' | 'selectorUpdated' | 'callLogHovered';

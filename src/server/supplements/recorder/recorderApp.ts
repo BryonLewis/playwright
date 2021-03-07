@@ -126,7 +126,7 @@ export class RecorderApp extends EventEmitter {
     }).toString(), true, mode, 'main').catch(() => {});
   }
 
-  async setMouseMode(mouseMode: 'default' | 'mouserecord'): Promise<void> {
+  async setMouseMode(mouseMode: 'selector' | 'raw'): Promise<void> {
     await this._page.mainFrame()._evaluateExpression(((mouseMode: MouseMode) => {
       window.playwrightSetMouseMode(mouseMode);
     }).toString(), true, mouseMode, 'main').catch(() => {});

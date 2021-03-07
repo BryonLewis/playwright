@@ -79,7 +79,7 @@ export class RecorderSupplement {
     this._context = context;
     this._params = params;
     this._mode = params.startRecording ? 'recording' : 'none';
-    this._mouseMode = params.mouseMode === 'mouserecord' ? 'mouserecord' : 'default';
+    this._mouseMode = params.mouseMode === 'raw' ? 'raw' : 'selector';
     this._pauseOnNextStatement = !!params.pauseOnNextStatement;
     const language = params.language || context._options.sdkLanguage;
 

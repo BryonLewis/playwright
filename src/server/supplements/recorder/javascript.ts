@@ -119,7 +119,7 @@ export class JavaScriptLanguageGenerator implements LanguageGenerator {
           options.modifiers = modifiers;
         const optionsString = formatOptions(options);
         const move = `mouse.move(${action.position.x}, ${action.position.y})`;
-        const mouseAction = `await mouse.${action.buttonState}({${optionsString}})`;
+        const mouseAction = `await mouse.${action.buttonState}(${optionsString})`;
         return `${move}\n${mouseAction}`;
       case 'check':
         return `check(${quote(action.selector)})`;
