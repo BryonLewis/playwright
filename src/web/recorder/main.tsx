@@ -23,6 +23,7 @@ declare global {
   interface Window {
     playwrightSetMode: (mode: Mode) => void;
     playwrightSetMouseMode: (mouseMode: MouseMode) => void;
+    playwrightSetMouseSteps: (mouseMode: number) => void;
     playwrightSetPaused: (paused: boolean) => void;
     playwrightSetSources: (sources: Source[]) => void;
     playwrightUpdateLogs: (callLogs: CallLog[]) => void;
@@ -37,9 +38,11 @@ export const Main: React.FC = ({
   const [log, setLog] = React.useState(new Map<number, CallLog>());
   const [mode, setMode] = React.useState<Mode>('none');
   const [mouseMode, setMouseMode] = React.useState<MouseMode>('selector');
+  const [mouseSteps, setMouseSteps] = React.useState<number>(1);
 
   window.playwrightSetMode = setMode;
   window.playwrightSetMouseMode = setMouseMode;
+  window.playwrightSetMouseSteps = setMouseSteps;
   window.playwrightSetSources = setSources;
   window.playwrightSetPaused = setPaused;
   window.playwrightUpdateLogs = callLogs => {
@@ -52,5 +55,5 @@ export const Main: React.FC = ({
   };
 
   window.playwrightSourcesEchoForTest = sources;
-  return <Recorder sources={sources} paused={paused} log={log} mode={mode} mouseMode={mouseMode}/>;
+  return <Recorder sources={sources} paused={paused} log={log} mode={mode} mouseMode={mouseMode} mouseSteps={mouseSteps}/>;
 };

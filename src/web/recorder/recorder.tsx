@@ -37,6 +37,7 @@ export interface RecorderProps {
   log: Map<number, CallLog>,
   mode: Mode,
   mouseMode: MouseMode,
+  mouseSteps: number,
   initialSelector?: string,
 }
 
@@ -46,6 +47,7 @@ export const Recorder: React.FC<RecorderProps> = ({
   log,
   mode,
   mouseMode,
+  mouseSteps,
   initialSelector,
 }) => {
   const [selector, setSelector] = React.useState(initialSelector || '');
@@ -97,13 +99,21 @@ export const Recorder: React.FC<RecorderProps> = ({
       <ToolbarButton icon='debug-step-over' title='Step over' disabled={!paused} onClick={() => {
         window.dispatch({ event: 'step' });
       }}></ToolbarButton>
-      <label htmlFor="mouse-select">Mouse:</label>
+      <label htmlFor="mouse-select" className='mouse-label'>Mouse:</label>
       <select id="mouse-select" className='mouse-chooser' value={mouseMode}  onChange={event => {
         window.dispatch({ event: 'setMouseMode', params: {mouseMode: event.target.selectedOptions[0].value} });
       }}>
         <option value='selector'>Selector</option>
         <option value='raw'>Raw</option>
       </select>
+      { mouseMode === 'raw' &&
+      <div>
+        <label htmlFor='mouseSteps'>Steps:</label>
+        <input id="mouseSteps" type="number" value={mouseSteps} onChange={event => {
+          window.dispatch({ event: 'setMouseSteps', params: {mouseSteps: event.target.value} });
+        }}/>
+      </div>
+      }
       <select className='recorder-chooser' hidden={!sources.length} value={file} onChange={event => {
         setFile(event.target.selectedOptions[0].value);
       }}>{

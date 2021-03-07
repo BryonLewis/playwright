@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+import { Page } from '../../../../types/types';
 import { Frame } from '../../frames';
 import * as actions from './recorderActions';
 
 export type MouseClickOptions = Parameters<Frame['click']>[2];
+export type MouseMoveOptions = Parameters<Page['mouse']['move']>
 
 export function toClickOptions(action: actions.ClickAction): { method: 'click' | 'dblclick', options: MouseClickOptions } {
   let method: 'click' | 'dblclick' = 'click';
@@ -34,7 +36,7 @@ export function toClickOptions(action: actions.ClickAction): { method: 'click' |
   return { method, options };
 }
 
-export function toMouseOptions(action: actions.MouseAction): {method: 'up' | 'down' | 'move', position?: {x: number, y: number}, options: MouseClickOptions }[] {
+export function toMouseOptions(action: actions.MouseAction): {method: 'up' | 'down' | 'move', position?: {x: number, y: number}, steps?: number, options: MouseClickOptions }[] {
   const method = action.buttonState;
   const modifiers = toModifiers(action.modifiers);
   const options: MouseClickOptions = {};
@@ -44,6 +46,7 @@ export function toMouseOptions(action: actions.MouseAction): {method: 'up' | 'do
   return [ {
     method: 'move',
     position: action.position,
+    steps: action.steps,
     options,
   },
   { method, options }

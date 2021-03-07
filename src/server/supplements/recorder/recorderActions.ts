@@ -44,6 +44,7 @@ export type MouseAction = ActionBase & {
   name: 'mouse',
   button: 'left' | 'middle' | 'right',
   buttonState: 'up' | 'down',
+  steps?: number,
   position: { x: number, y: number},
   modifiers: number,
 };

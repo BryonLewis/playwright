@@ -48,6 +48,7 @@ export class RecorderSupplement {
   private _context: BrowserContext;
   private _mode: Mode;
   private _mouseMode: MouseMode;
+  private _mouseSteps: number;
   private _highlightedSelector = '';
   private _recorderApp: RecorderApp | null = null;
   private _params: channels.BrowserContextRecorderSupplementEnableParams;
@@ -80,6 +81,7 @@ export class RecorderSupplement {
     this._params = params;
     this._mode = params.startRecording ? 'recording' : 'none';
     this._mouseMode = params.mouseMode === 'raw' ? 'raw' : 'selector';
+    this._mouseSteps = params.mouseSteps || 1;
     this._pauseOnNextStatement = !!params.pauseOnNextStatement;
     const language = params.language || context._options.sdkLanguage;
 
@@ -151,6 +153,10 @@ export class RecorderSupplement {
         this._refreshOverlay();
         return;
       }
+      if (data.event === 'setMouseSteps') {
+        this._setMouseSteps(data.params.mouseSteps);
+        this._refreshOverlay();
+      }
       if (data.event === 'selectorUpdated') {
         this._highlightedSelector = data.params.selector;
         this._refreshOverlay();
@@ -184,6 +190,7 @@ export class RecorderSupplement {
     await Promise.all([
       recorderApp.setMode(this._mode),
       recorderApp.setMouseMode(this._mouseMode),
+      recorderApp.setMouseSteps(this._mouseSteps),
       recorderApp.setPaused(!!this._pausedCallsMetadata.size),
       this._pushAllSources()
     ]);
@@ -231,6 +238,7 @@ export class RecorderSupplement {
       const uiState: UIState = {
         mode: this._mode,
         mouseMode: this._mouseMode,
+        mouseSteps: this._mouseSteps,
         actionPoint,
         actionSelector,
         snapshotId,
@@ -283,6 +291,14 @@ export class RecorderSupplement {
     this._context.pages()[0].bringToFront().catch(() => {});
 
   }
+
+  private _setMouseSteps(steps: number) {
+    this._mouseSteps = steps;
+    this._recorderApp?.setMouseSteps(this._mouseSteps);
+    this._context.pages()[0].bringToFront().catch(() => {});
+
+  }
+
   private async _resume(step: boolean) {
     this._pauseOnNextStatement = step;
     this._recorderApp?.setPaused(false);
@@ -374,7 +390,7 @@ export class RecorderSupplement {
           switch (mouseAction.method){
             case 'move':
               if (mouseAction.position && mouseAction.position.x && mouseAction.position.y)
-                await page.mouse.move(mouseAction.position.x, mouseAction.position.y,);
+                await page.mouse.move(mouseAction.position.x, mouseAction.position.y, { steps: mouseAction.steps });
 
               break;
             case 'up':

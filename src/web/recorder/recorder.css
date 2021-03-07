@@ -30,7 +30,11 @@
   white-space: nowrap;
 }
 
-.recorder-chooser {
+.mouse-label {
+  line-height: 25px;
+}
+
+.recorder-chooser, .mouse-chooser {
   border: none;
   background: none;
   outline: none;

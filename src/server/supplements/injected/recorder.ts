@@ -50,6 +50,7 @@ export class Recorder {
   private _pollRecorderModeTimer: NodeJS.Timeout | undefined;
   private _mode: 'none' | 'inspecting' | 'recording' = 'none';
   private _mouseMode: 'selector' | 'raw' = 'selector';
+  private _mouseSteps: number = 1;
   private _actionPointElement: HTMLElement;
   private _actionPoint: Point | undefined;
   private _actionSelector: string | undefined;
@@ -195,7 +196,7 @@ export class Recorder {
       return;
     }
 
-    const { mode, actionPoint, actionSelector, snapshotId, mouseMode } = state;
+    const { mode, actionPoint, actionSelector, snapshotId, mouseMode, mouseSteps } = state;
     if (mode !== this._mode) {
       this._mode = mode;
       this._clearHighlight();
@@ -204,6 +205,11 @@ export class Recorder {
       this._mouseMode = mouseMode;
       this._clearHighlight();
     }
+    if (mouseSteps !== this._mouseSteps) {
+      this._mouseSteps = mouseSteps;
+      this._clearHighlight();
+    }
+
     if (actionPoint && this._actionPoint && actionPoint.x === this._actionPoint.x && actionPoint.y === this._actionPoint.y) {
       // All good.
     } else if (!actionPoint && !this._actionPoint) {
@@ -343,6 +349,7 @@ export class Recorder {
         button: buttonForEvent(event),
         buttonState: 'down',
         modifiers: modifiersForEvent(event),
+        steps: this._mouseSteps,
         position: {
           x: event.pageX,
           y: event.pageY
@@ -368,6 +375,7 @@ export class Recorder {
         button: buttonForEvent(event),
         buttonState: 'up',
         modifiers: modifiersForEvent(event),
+        steps: this._mouseSteps,
         position: {
           x: event.pageX,
           y: event.pageY
