@@ -31,7 +31,7 @@ import * as consoleApiSource from '../../generated/consoleApiSource';
 import { RecorderApp } from './recorder/recorderApp';
 import { CallMetadata, internalCallMetadata, SdkObject } from '../instrumentation';
 import { Point } from '../../common/types';
-import { CallLog, EventData, Mode, MouseMode, Source, UIState } from './recorder/recorderTypes';
+import { CallLog, EventData, Mode, MouseMode, Source, UIState, ScreenshotSettings } from './recorder/recorderTypes';
 import { isUnderTest, monotonicTime } from '../../utils/utils';
 import { InMemorySnapshotter } from '../snapshot/inMemorySnapshotter';
 
@@ -148,6 +148,9 @@ export class RecorderSupplement {
       }
       console.log(`Calling event ${data.event} with`);
       console.log(data.params);
+      if (data.event === 'setScreenshot')
+        this._setScreenShot(data.params);
+
       if (data.event === 'setMouseMode') {
         this._setMouseMode(data.params.mouseMode);
         this._refreshOverlay();
@@ -252,6 +255,11 @@ export class RecorderSupplement {
       await this._recorderApp?.bringToFront();
     });
 
+    await this._context.exposeBinding('_playwrightRecorderSetScreenshotMode', false, async (_, mode: boolean) => {
+      await this._recorderApp?.setScreenshotMode(mode);
+      await this._recorderApp?.bringToFront();
+    });
+
     await this._context.exposeBinding('_playwrightResume', false, () => {
       this._resume(false).catch(() => {});
     });
@@ -290,6 +298,13 @@ export class RecorderSupplement {
     this._recorderApp?.setMouseMode(this._mouseMode);
     this._context.pages()[0].bringToFront().catch(() => {});
 
+  }
+
+  private async _setScreenShot(settings: ScreenshotSettings) {
+    for (const page of this._context.pages()) {
+      console.log('calling the loop evaluate for screenshot');
+      page.mainFrame()._evaluateExpression('window._playwrightTakeScreenshot', true, settings, 'main').catch(() => {});
+    }
   }
 
   private _setMouseSteps(steps: number) {
@@ -471,9 +486,11 @@ export class RecorderSupplement {
     this.updateCallLog([metadata]);
     if (shouldPauseOnCall(sdkObject, metadata) || (this._pauseOnNextStatement && shouldPauseOnStep(sdkObject, metadata)))
       await this.pause(metadata);
-    if (metadata.params && metadata.params.selector) {
-      this._highlightedSelector = metadata.params.selector;
-      await this._recorderApp?.setSelector(this._highlightedSelector);
+    if (metadata.params) {
+      if (metadata.params.selector) {
+        this._highlightedSelector = metadata.params.selector;
+        await this._recorderApp?.setSelector(this._highlightedSelector);
+      }
     }
   }
 

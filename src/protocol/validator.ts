@@ -366,6 +366,7 @@ export function createScheme(tChannel: (name: string) => Validator): Scheme {
     startRecording: tOptional(tBoolean),
     mouseMode: tOptional(tString),
     mouseSteps: tOptional(tNumber),
+    screenshot: tOptional(tBoolean),
     pauseOnNextStatement: tOptional(tBoolean),
     launchOptions: tOptional(tAny),
     contextOptions: tOptional(tAny),

@@ -116,6 +116,8 @@ export class PythonLanguageGenerator implements LanguageGenerator {
       }
       case 'mouse':
         return `Mouse-${action.buttonState} at Position: ${action.position.x},${action.position.y}`;
+      case 'screenshot':
+        return `screenshot ${action.path}`;
       case 'check':
         return `check(${quote(action.selector)})`;
       case 'uncheck':

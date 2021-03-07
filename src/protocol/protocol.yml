@@ -651,6 +651,7 @@ BrowserContext:
         startRecording: boolean?
         mouseMode: string?
         mouseSteps: number?
+        screenshot: boolean?
         pauseOnNextStatement: boolean?
         launchOptions: json?
         contextOptions: json?

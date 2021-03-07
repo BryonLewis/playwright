@@ -16,7 +16,7 @@
 
 import type { BrowserContextOptions, LaunchOptions } from '../../../..';
 import { ActionInContext } from './codeGenerator';
-import { Action, DialogSignal, DownloadSignal, NavigationSignal, PopupSignal } from './recorderActions';
+import { Action, CombinationSignal, DialogSignal, DownloadSignal, NavigationSignal, PopupSignal } from './recorderActions';
 
 export type LanguageGeneratorOptions = {
   browserName: string;
@@ -52,6 +52,7 @@ export function toSignalMap(action: Action) {
   let popup: PopupSignal | undefined;
   let download: DownloadSignal | undefined;
   let dialog: DialogSignal | undefined;
+  let combination: CombinationSignal | undefined;
   for (const signal of action.signals) {
     if (signal.name === 'navigation' && signal.isAsync)
       waitForNavigation = signal;
@@ -63,6 +64,8 @@ export function toSignalMap(action: Action) {
       download = signal;
     else if (signal.name === 'dialog')
       dialog = signal;
+    else if (signal.name === 'combination')
+      combination = signal;
   }
   return {
     waitForNavigation,
@@ -70,5 +73,6 @@ export function toSignalMap(action: Action) {
     popup,
     download,
     dialog,
+    combination,
   };
 }

@@ -18,7 +18,7 @@ import type { BrowserContextOptions } from '../../../..';
 import { LanguageGenerator, LanguageGeneratorOptions, sanitizeDeviceOptions, toSignalMap } from './language';
 import { ActionInContext } from './codeGenerator';
 import { Action, actionTitle } from './recorderActions';
-import { MouseClickOptions, toModifiers } from './utils';
+import { MouseClickOptions, ScreenshotRecorderOptions, toModifiers } from './utils';
 import deviceDescriptors = require('../../deviceDescriptors');
 
 export class JavaScriptLanguageGenerator implements LanguageGenerator {
@@ -77,10 +77,14 @@ export class JavaScriptLanguageGenerator implements LanguageGenerator {
     if (signals.download)
       formatter.add(`${pageAlias}.waitForEvent('download'),`);
 
-    const prefix = (signals.popup || signals.waitForNavigation || signals.download) ? '' : 'await ';
+    const prefix = (signals.popup || signals.waitForNavigation || signals.download || signals.combination) ? '' : 'await ';
     const actionCall = this._generateActionCall(action);
     const suffix = (signals.waitForNavigation || emitPromiseAll) ? '' : ';';
-    formatter.add(`${prefix}${subject}.${actionCall}${suffix}`);
+    if (signals.combination)
+      formatter.add(`${actionCall}${suffix}`);
+    else
+      formatter.add(`${prefix}${subject}.${actionCall}${suffix}`);
+
 
     if (emitPromiseAll)
       formatter.add(`]);`);
@@ -126,6 +130,22 @@ export class JavaScriptLanguageGenerator implements LanguageGenerator {
         const move = `mouse.move(${action.position.x}, ${action.position.y}${steps})`;
         const mouseAction = `await mouse.${action.buttonState}(${optionsString})`;
         return `${move}\n${mouseAction}`;
+      case 'screenshot':
+        const screenshotOptions: ScreenshotRecorderOptions = {
+          path: action.path,
+        };
+        if (action.clip)
+          screenshotOptions.clip = action.clip;
+
+        if (action.fullPage)
+          screenshotOptions.fullPage = action.fullPage;
+        if (action.selector){
+          const elementName = action.path.replace(/\//g,'_').replace('.png','').replace(/\./g,'');
+          const selector  = `const ${elementName}= await page.$(${quote(action.selector)}');`;
+          const result = `await ${elementName}.screenshot(${formatOptions(screenshotOptions, false)})`;
+          return `${selector}\n${result}`;
+        }
+        return `screenshot(${formatOptions(screenshotOptions, false)})`;
       case 'check':
         return `check(${quote(action.selector)})`;
       case 'uncheck':
@@ -166,11 +186,11 @@ export class JavaScriptLanguageGenerator implements LanguageGenerator {
   }
 }
 
-function formatOptions(value: any): string {
+function formatOptions(value: any, first = true): string {
   const keys = Object.keys(value);
   if (!keys.length)
     return '';
-  return ', ' + formatObject(value);
+  return `${first ? ', ' : ''}${formatObject(value)}`;
 }
 
 function formatObject(value: any, indent = '  '): string {

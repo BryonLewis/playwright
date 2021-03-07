@@ -19,7 +19,17 @@ import { Frame } from '../../frames';
 import * as actions from './recorderActions';
 
 export type MouseClickOptions = Parameters<Frame['click']>[2];
-export type MouseMoveOptions = Parameters<Page['mouse']['move']>
+export type MouseMoveOptions = Parameters<Page['mouse']['move']>;
+export type ScreenshotRecorderOptions = {
+  clip?: {
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  },
+  path: string,
+  fullPage?: boolean,
+};
 
 export function toClickOptions(action: actions.ClickAction): { method: 'click' | 'dblclick', options: MouseClickOptions } {
   let method: 'click' | 'dblclick' = 'click';

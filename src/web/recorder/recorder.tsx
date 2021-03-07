@@ -27,6 +27,7 @@ declare global {
   interface Window {
     playwrightSetFile: (file: string) => void;
     playwrightSetSelector: (selector: string, focus?: boolean) => void;
+    playwrightSetScreenshotMode: (mode: boolean) => void;
     dispatch(data: any): Promise<void>;
   }
 }
@@ -38,6 +39,7 @@ export interface RecorderProps {
   mode: Mode,
   mouseMode: MouseMode,
   mouseSteps: number,
+  initialScreenshotMode?: boolean,
   initialSelector?: string,
 }
 
@@ -48,15 +50,23 @@ export const Recorder: React.FC<RecorderProps> = ({
   mode,
   mouseMode,
   mouseSteps,
+  initialScreenshotMode,
   initialSelector,
 }) => {
   const [selector, setSelector] = React.useState(initialSelector || '');
+  const [screenshotMode, setScreenshotMode] = React.useState(initialScreenshotMode || false);
   const [focusSelectorInput, setFocusSelectorInput] = React.useState(false);
   window.playwrightSetSelector = (selector: string, focus?: boolean) => {
     setSelector(selector);
     setFocusSelectorInput(!!focus);
   };
+  window.playwrightSetScreenshotMode = (screenshotMode: boolean) => {
+    setScreenshotMode(screenshotMode);
+  };
 
+  const [screenshotDialog, setScreenshotDialog] = React.useState(false);
+  const [screenshotFilename, setScreenshotFilename] = React.useState('file.png');
+  const [screenshotFull, setScreenshotFull] = React.useState(false);
   const [f, setFile] = React.useState<string | undefined>();
   window.playwrightSetFile = setFile;
   const file = f || sources[0]?.file;
@@ -114,6 +124,9 @@ export const Recorder: React.FC<RecorderProps> = ({
         }}/>
       </div>
       }
+      <ToolbarButton icon='device-camera' title='Screenshot' toggled={screenshotMode}  disabled={mode !== 'recording'} onClick={() => {
+        setScreenshotDialog(true);
+      }}></ToolbarButton>
       <select className='recorder-chooser' hidden={!sources.length} value={file} onChange={event => {
         setFile(event.target.selectedOptions[0].value);
       }}>{
@@ -145,6 +158,32 @@ export const Recorder: React.FC<RecorderProps> = ({
         }}/>
       </div>
     </SplitView>
+    {
+      screenshotDialog &&
+       <div className="screenshotDialog">
+         <div className="modal-content">
+           <p>
+             <label>Filename:
+               <input type="text" value={screenshotFilename} onChange={event => {
+                 setScreenshotFilename(event.target.value);
+               }}/>
+             </label>
+             <label>Fullscreen:
+               <input type="checkbox" checked={screenshotFull}  onChange={event => {
+                 setScreenshotFull(event.target.checked);
+               }}/>
+             </label>
+           </p>
+           <menu>
+             <button onClick={ event => { setScreenshotDialog(false); }}>Cancel</button>
+             <button id="confirmBtn" onClick={event => {
+               window.dispatch({ event: 'setScreenshot', params: {path: screenshotFilename, fullScreen: screenshotFull} });
+               setScreenshotDialog(false);
+             }}>Confirm</button>
+           </menu>
+         </div>
+       </div>
+    }
   </div>;
 };
 

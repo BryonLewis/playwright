@@ -18,7 +18,7 @@ import type * as actions from '../recorder/recorderActions';
 import type InjectedScript from '../../injected/injectedScript';
 import { generateSelector, querySelector } from './selectorGenerator';
 import type { Point } from '../../../common/types';
-import type { UIState } from '../recorder/recorderTypes';
+import type { ScreenshotSettings, UIState } from '../recorder/recorderTypes';
 
 declare global {
   interface Window {
@@ -28,7 +28,9 @@ declare global {
     _playwrightRecorderState: () => Promise<UIState>;
     _playwrightResume: () => Promise<void>;
     _playwrightRecorderSetSelector: (selector: string) => Promise<void>;
+    _playwrightRecorderSetScreenshotMode: (mode: boolean) => Promise<void>;
     _playwrightRefreshOverlay: () => void;
+    _playwrightTakeScreenshot: (settings: ScreenshotSettings) => void;
   }
 }
 
@@ -51,6 +53,7 @@ export class Recorder {
   private _mode: 'none' | 'inspecting' | 'recording' = 'none';
   private _mouseMode: 'selector' | 'raw' = 'selector';
   private _mouseSteps: number = 1;
+  private _screenshotPath: string = '';
   private _actionPointElement: HTMLElement;
   private _actionPoint: Point | undefined;
   private _actionSelector: string | undefined;
@@ -136,6 +139,23 @@ export class Recorder {
     }, 500);
     window._playwrightRefreshOverlay = () => {
       this._pollRecorderMode().catch(e => console.log(e)); // eslint-disable-line no-console
+    };
+    window._playwrightTakeScreenshot = (settings: ScreenshotSettings) => {
+      console.log('Setting inside take screenshot');
+      console.log(settings);
+      if (settings.fullScreen === true) {
+        this._performAction({
+          name: 'screenshot',
+          path: settings.path,
+          fullPage: settings.fullScreen,
+          signals: [],
+        });
+        window._playwrightRecorderSetScreenshotMode(false);
+        this._screenshotPath = '';
+      } else {
+        this._screenshotPath = settings.path;
+        window._playwrightRecorderSetScreenshotMode(true);
+      }
     };
     window._playwrightRefreshOverlay();
   }
@@ -293,6 +313,20 @@ export class Recorder {
       return;
 
     const checkbox = asCheckbox(this._deepEventTarget(event));
+    if (this._screenshotPath !== ''){
+      this._performAction({
+        name: 'screenshot',
+        path: this._screenshotPath,
+        selector: this._hoveredModel!.selector,
+        signals: [{name: 'combination'}],
+      });
+      this._screenshotPath = '';
+      window._playwrightRecorderSetScreenshotMode(false);
+
+      return;
+    }
+
+
     if (checkbox) {
       // Interestingly, inputElement.checked is reversed inside this event handler.
       this._performAction({

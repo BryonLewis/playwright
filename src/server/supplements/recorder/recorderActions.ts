@@ -20,6 +20,7 @@ export type ActionName =
   'closePage' |
   'fill' |
   'mouse' |
+  'screenshot' |
   'navigate' |
   'openPage' |
   'press' |
@@ -48,6 +49,19 @@ export type MouseAction = ActionBase & {
   position: { x: number, y: number},
   modifiers: number,
 };
+
+export type ScreenshotAction = ActionBase & {
+  name: 'screenshot',
+  fullPage?: boolean,
+  path: string,
+  selector?: string,
+  clip?: {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  },
+}
 
 export type CheckAction = ActionBase & {
   name: 'check',
@@ -98,7 +112,7 @@ export type SetInputFilesAction = ActionBase & {
   files: string[],
 };
 
-export type Action = ClickAction | MouseAction | CheckAction | ClosesPageAction | OpenPageAction | UncheckAction | FillAction | NavigateAction | PressAction | SelectAction | SetInputFilesAction;
+export type Action = ClickAction | MouseAction | ScreenshotAction | CheckAction | ClosesPageAction | OpenPageAction | UncheckAction | FillAction | NavigateAction | PressAction | SelectAction | SetInputFilesAction;
 
 // Signals.
 
@@ -125,7 +139,11 @@ export type DialogSignal = BaseSignal & {
   dialogAlias: string,
 };
 
-export type Signal = NavigationSignal | PopupSignal | DownloadSignal | DialogSignal;
+export type CombinationSignal = BaseSignal & {
+  name: 'combination',
+}
+
+export type Signal = NavigationSignal | PopupSignal | DownloadSignal | DialogSignal | CombinationSignal;
 
 export function actionTitle(action: Action): string {
   switch (action.name) {
@@ -148,6 +166,14 @@ export function actionTitle(action: Action): string {
     }
     case 'mouse': {
       return `Mouse-${action.buttonState} at Position: ${action.position.x},${action.position.y}`;
+    }
+    case 'screenshot': {
+      if (action.fullPage)
+        return `Screenshot - fullscreen Path: ${action.path}`;
+
+      if (action.clip)
+        return `Screeshot - Path: ${action.path} Region:(${action.clip.x},${action.clip.y},${action.clip.width},${action.clip.height})`;
+      return `Screenshot - Path: ${action.path}`;
     }
     case 'fill':
       return `Fill ${action.selector}`;

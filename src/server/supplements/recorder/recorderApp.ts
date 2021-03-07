@@ -38,6 +38,7 @@ declare global {
     playwrightSetPaused: (paused: boolean) => void;
     playwrightSetSources: (sources: Source[]) => void;
     playwrightSetSelector: (selector: string, focus?: boolean) => void;
+    playwrightSetScreenshotMode: (mode: boolean) => void;
     playwrightUpdateLogs: (callLogs: CallLog[]) => void;
     dispatch(data: EventData): Promise<void>;
   }
@@ -170,6 +171,13 @@ export class RecorderApp extends EventEmitter {
     await this._page.mainFrame()._evaluateExpression(((arg: any) => {
       window.playwrightSetSelector(arg.selector, arg.focus);
     }).toString(), true, { selector, focus }, 'main').catch(() => {});
+  }
+
+  async setScreenshotMode(mode: boolean): Promise<void> {
+    await this._page.mainFrame()._evaluateExpression(((arg: any) => {
+      window.playwrightSetScreenshotMode(arg);
+    }).toString(), true, mode, 'main').catch(() => {});
+
   }
 
   async updateCallLogs(callLogs: CallLog[]): Promise<void> {

@@ -20,8 +20,13 @@ export type Mode = 'inspecting' | 'recording' | 'none';
 
 export type MouseMode = 'selector' | 'raw';
 
+export type ScreenshotSettings = {
+  path: string,
+  fullScreen: boolean,
+};
+
 export type EventData = {
-  event: 'clear' | 'resume' | 'step' | 'pause' | 'setMode' | 'setMouseMode' | 'setMouseSteps' | 'selectorUpdated' | 'callLogHovered';
+  event: 'clear' | 'resume' | 'step' | 'pause' | 'setMode' | 'setMouseMode' | 'setScreenshot' | 'setMouseSteps' | 'selectorUpdated' | 'callLogHovered';
   params: any;
 };
 
