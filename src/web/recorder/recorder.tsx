@@ -107,9 +107,9 @@ export const Recorder: React.FC<RecorderProps> = ({
         <option value='raw'>Raw</option>
       </select>
       { mouseMode === 'raw' &&
-      <div>
+      <div className="mouseStepsGroup">
         <label htmlFor='mouseSteps'>Steps:</label>
-        <input id="mouseSteps" type="number" value={mouseSteps} onChange={event => {
+        <input id="mouseSteps" type="number" step="1" value={mouseSteps} onChange={event => {
           window.dispatch({ event: 'setMouseSteps', params: {mouseSteps: event.target.value} });
         }}/>
       </div>

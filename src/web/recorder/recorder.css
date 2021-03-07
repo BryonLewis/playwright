@@ -14,6 +14,12 @@
   limitations under the License.
 */
 
+#mouseSteps{
+  max-width: 60px;
+}
+.mouseStepsGroup {
+  display: flex
+}
 .recorder {
   display: flex;
   flex-direction: column;
