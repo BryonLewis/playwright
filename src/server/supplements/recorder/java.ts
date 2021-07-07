@@ -96,6 +96,8 @@ export class JavaLanguageGenerator implements LanguageGenerator {
           method = 'dblclick';
         return `${method}(${quote(action.selector)})`;
       }
+      case 'mouse':
+        return `Mouse-${action.buttonState} at Position: ${action.position.x},${action.position.y}`;
       case 'check':
         return `check(${quote(action.selector)})`;
       case 'uncheck':

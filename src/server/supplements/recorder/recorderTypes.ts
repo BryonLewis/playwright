@@ -18,13 +18,17 @@ import { Point } from '../../../common/types';
 
 export type Mode = 'inspecting' | 'recording' | 'none';
 
+export type MouseMode = 'selector' | 'raw';
+
 export type EventData = {
-  event: 'clear' | 'resume' | 'step' | 'pause' | 'setMode' | 'selectorUpdated' | 'callLogHovered';
+  event: 'clear' | 'resume' | 'step' | 'pause' | 'setMode' | 'setMouseMode' | 'setMouseSteps' | 'selectorUpdated' | 'callLogHovered';
   params: any;
 };
 
 export type UIState = {
   mode: Mode;
+  mouseMode: MouseMode;
+  mouseSteps: number;
   actionPoint?: Point;
   actionSelector?: string;
   snapshotId?: string;

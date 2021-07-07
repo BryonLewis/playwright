@@ -23,7 +23,7 @@ import { ProgressController } from '../../progress';
 import { createPlaywright } from '../../playwright';
 import { EventEmitter } from 'events';
 import { internalCallMetadata } from '../../instrumentation';
-import type { CallLog, EventData, Mode, Source } from './recorderTypes';
+import type { CallLog, EventData, Mode, Source, MouseMode } from './recorderTypes';
 import { BrowserContext } from '../../browserContext';
 import { isUnderTest } from '../../../utils/utils';
 
@@ -33,6 +33,8 @@ declare global {
   interface Window {
     playwrightSetFile: (file: string) => void;
     playwrightSetMode: (mode: Mode) => void;
+    playwrightSetMouseMode: (mouseMode: MouseMode) => void;
+    playwrightSetMouseSteps: (mouseSteps: number) => void;
     playwrightSetPaused: (paused: boolean) => void;
     playwrightSetSources: (sources: Source[]) => void;
     playwrightSetSelector: (selector: string, focus?: boolean) => void;
@@ -123,6 +125,18 @@ export class RecorderApp extends EventEmitter {
     await this._page.mainFrame()._evaluateExpression(((mode: Mode) => {
       window.playwrightSetMode(mode);
     }).toString(), true, mode, 'main').catch(() => {});
+  }
+
+  async setMouseMode(mouseMode: 'selector' | 'raw'): Promise<void> {
+    await this._page.mainFrame()._evaluateExpression(((mouseMode: MouseMode) => {
+      window.playwrightSetMouseMode(mouseMode);
+    }).toString(), true, mouseMode, 'main').catch(() => {});
+  }
+
+  async setMouseSteps(mouseSteps: number): Promise<void> {
+    await this._page.mainFrame()._evaluateExpression(((mouseSteps: number) => {
+      window.playwrightSetMouseSteps(mouseSteps);
+    }).toString(), true, mouseSteps, 'main').catch(() => {});
   }
 
   async setFile(file: string): Promise<void> {

@@ -49,6 +49,8 @@ export class Recorder {
   private _expectProgrammaticKeyUp = false;
   private _pollRecorderModeTimer: NodeJS.Timeout | undefined;
   private _mode: 'none' | 'inspecting' | 'recording' = 'none';
+  private _mouseMode: 'selector' | 'raw' = 'selector';
+  private _mouseSteps: number = 1;
   private _actionPointElement: HTMLElement;
   private _actionPoint: Point | undefined;
   private _actionSelector: string | undefined;
@@ -194,11 +196,20 @@ export class Recorder {
       return;
     }
 
-    const { mode, actionPoint, actionSelector, snapshotId } = state;
+    const { mode, actionPoint, actionSelector, snapshotId, mouseMode, mouseSteps } = state;
     if (mode !== this._mode) {
       this._mode = mode;
       this._clearHighlight();
     }
+    if (mouseMode !== this._mouseMode) {
+      this._mouseMode = mouseMode;
+      this._clearHighlight();
+    }
+    if (mouseSteps !== this._mouseSteps) {
+      this._mouseSteps = mouseSteps;
+      this._clearHighlight();
+    }
+
     if (actionPoint && this._actionPoint && actionPoint.x === this._actionPoint.x && actionPoint.y === this._actionPoint.y) {
       // All good.
     } else if (!actionPoint && !this._actionPoint) {
@@ -268,6 +279,10 @@ export class Recorder {
   }
 
   private _onClick(event: MouseEvent) {
+    if (this._mouseMode === 'raw') {
+      consumeEvent(event);
+      return;
+    }
     if (this._mode === 'inspecting')
       window._playwrightRecorderSetSelector(this._hoveredModel ? this._hoveredModel.selector : '');
     if (this._shouldIgnoreMouseEvent(event))
@@ -307,26 +322,66 @@ export class Recorder {
       return true;
     }
     const nodeName = target.nodeName;
-    if (nodeName === 'SELECT')
-      return true;
-    if (nodeName === 'INPUT' && ['date'].includes((target as HTMLInputElement).type))
-      return true;
+    if (this._mouseMode === 'selector') {
+      if (nodeName === 'SELECT')
+        return true;
+      if (nodeName === 'INPUT' && ['date'].includes((target as HTMLInputElement).type))
+        return true;
+    }
     return false;
   }
 
   private _onMouseDown(event: MouseEvent) {
     if (this._shouldIgnoreMouseEvent(event))
       return;
-    if (!this._performingAction)
+    if (!this._performingAction && this._mouseMode === 'selector'){
       consumeEvent(event);
-    this._activeModel = this._hoveredModel;
+      this._activeModel = this._hoveredModel;
+    }
+
+    if (this._mouseMode === 'raw') {
+      if (this._actionInProgress(event))
+        return;
+
+      this._performAction({
+        name: 'mouse',
+        signals: [],
+        button: buttonForEvent(event),
+        buttonState: 'down',
+        modifiers: modifiersForEvent(event),
+        steps: this._mouseSteps,
+        position: {
+          x: event.pageX,
+          y: event.pageY
+        }
+      });
+      consumeEvent(event);
+    }
   }
 
   private _onMouseUp(event: MouseEvent) {
     if (this._shouldIgnoreMouseEvent(event))
       return;
-    if (!this._performingAction)
+    if (!this._performingAction && this._mouseMode === 'selector')
       consumeEvent(event);
+
+    if (this._mouseMode === 'raw') {
+      if (this._actionInProgress(event))
+        return;
+
+      this._performAction({
+        name: 'mouse',
+        signals: [],
+        button: buttonForEvent(event),
+        buttonState: 'up',
+        modifiers: modifiersForEvent(event),
+        steps: this._mouseSteps,
+        position: {
+          x: event.pageX,
+          y: event.pageY
+        }
+      });
+    }
   }
 
   private _onMouseMove(event: MouseEvent) {
@@ -374,6 +429,9 @@ export class Recorder {
   }
 
   private _updateHighlight() {
+    if (this._mouseMode === 'raw')
+      return;
+
     const elements = this._hoveredModel ? this._hoveredModel.elements : [];
 
     // Code below should trigger one layout and leave with the

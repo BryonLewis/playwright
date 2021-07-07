@@ -114,6 +114,8 @@ export class PythonLanguageGenerator implements LanguageGenerator {
         const optionsString = formatOptions(options, true);
         return `${method}(${quote(action.selector)}${optionsString})`;
       }
+      case 'mouse':
+        return `Mouse-${action.buttonState} at Position: ${action.position.x},${action.position.y}`;
       case 'check':
         return `check(${quote(action.selector)})`;
       case 'uncheck':

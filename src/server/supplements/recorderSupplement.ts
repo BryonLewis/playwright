@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as actions from './recorder/recorderActions';
 import type * as channels from '../../protocol/channels';
 import { CodeGenerator, ActionInContext } from './recorder/codeGenerator';
-import { describeFrame, toClickOptions, toModifiers } from './recorder/utils';
+import { describeFrame, toClickOptions, toModifiers, toMouseOptions } from './recorder/utils';
 import { Page } from '../page';
 import { Frame } from '../frames';
 import { BrowserContext } from '../browserContext';
@@ -31,7 +31,7 @@ import * as consoleApiSource from '../../generated/consoleApiSource';
 import { RecorderApp } from './recorder/recorderApp';
 import { CallMetadata, internalCallMetadata, SdkObject } from '../instrumentation';
 import { Point } from '../../common/types';
-import { CallLog, EventData, Mode, Source, UIState } from './recorder/recorderTypes';
+import { CallLog, EventData, Mode, MouseMode, Source, UIState } from './recorder/recorderTypes';
 import { isUnderTest, monotonicTime } from '../../utils/utils';
 import { InMemorySnapshotter } from '../snapshot/inMemorySnapshotter';
 
@@ -47,6 +47,8 @@ export class RecorderSupplement {
   private _timers = new Set<NodeJS.Timeout>();
   private _context: BrowserContext;
   private _mode: Mode;
+  private _mouseMode: MouseMode;
+  private _mouseSteps: number;
   private _highlightedSelector = '';
   private _recorderApp: RecorderApp | null = null;
   private _params: channels.BrowserContextRecorderSupplementEnableParams;
@@ -78,6 +80,8 @@ export class RecorderSupplement {
     this._context = context;
     this._params = params;
     this._mode = params.startRecording ? 'recording' : 'none';
+    this._mouseMode = params.mouseMode === 'raw' ? 'raw' : 'selector';
+    this._mouseSteps = params.mouseSteps || 1;
     this._pauseOnNextStatement = !!params.pauseOnNextStatement;
     const language = params.language || context._options.sdkLanguage;
 
@@ -142,6 +146,17 @@ export class RecorderSupplement {
         this._refreshOverlay();
         return;
       }
+      console.log(`Calling event ${data.event} with`);
+      console.log(data.params);
+      if (data.event === 'setMouseMode') {
+        this._setMouseMode(data.params.mouseMode);
+        this._refreshOverlay();
+        return;
+      }
+      if (data.event === 'setMouseSteps') {
+        this._setMouseSteps(data.params.mouseSteps);
+        this._refreshOverlay();
+      }
       if (data.event === 'selectorUpdated') {
         this._highlightedSelector = data.params.selector;
         this._refreshOverlay();
@@ -174,6 +189,8 @@ export class RecorderSupplement {
 
     await Promise.all([
       recorderApp.setMode(this._mode),
+      recorderApp.setMouseMode(this._mouseMode),
+      recorderApp.setMouseSteps(this._mouseSteps),
       recorderApp.setPaused(!!this._pausedCallsMetadata.size),
       this._pushAllSources()
     ]);
@@ -220,6 +237,8 @@ export class RecorderSupplement {
       }
       const uiState: UIState = {
         mode: this._mode,
+        mouseMode: this._mouseMode,
+        mouseSteps: this._mouseSteps,
         actionPoint,
         actionSelector,
         snapshotId,
@@ -264,6 +283,20 @@ export class RecorderSupplement {
     this._generator.setEnabled(this._mode === 'recording');
     if (this._mode !== 'none')
       this._context.pages()[0].bringToFront().catch(() => {});
+  }
+
+  private _setMouseMode(mode: MouseMode) {
+    this._mouseMode = mode;
+    this._recorderApp?.setMouseMode(this._mouseMode);
+    this._context.pages()[0].bringToFront().catch(() => {});
+
+  }
+
+  private _setMouseSteps(steps: number) {
+    this._mouseSteps = steps;
+    this._recorderApp?.setMouseSteps(this._mouseSteps);
+    this._context.pages()[0].bringToFront().catch(() => {});
+
   }
 
   private async _resume(step: boolean) {
@@ -349,6 +382,25 @@ export class RecorderSupplement {
       if (action.name === 'click') {
         const { options } = toClickOptions(action);
         await frame.click(noCallMetadata, action.selector, { ...options, timeout: kActionTimeout });
+      }
+      if (action.name === 'mouse') {
+        const mouseList = toMouseOptions(action);
+        for (let i = 0; i < mouseList.length; i += 1) {
+          const mouseAction = mouseList[i];
+          switch (mouseAction.method){
+            case 'move':
+              if (mouseAction.position && mouseAction.position.x && mouseAction.position.y)
+                await page.mouse.move(mouseAction.position.x, mouseAction.position.y, { steps: mouseAction.steps });
+
+              break;
+            case 'up':
+              await page.mouse.up({ ...mouseAction.options });
+              break;
+            case 'down':
+              await page.mouse.down({ ...mouseAction.options });
+              break;
+          }
+        }
       }
       if (action.name === 'press') {
         const modifiers = toModifiers(action.modifiers);
